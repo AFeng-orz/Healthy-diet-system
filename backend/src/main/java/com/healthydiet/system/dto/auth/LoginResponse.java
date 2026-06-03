@@ -1,0 +1,13 @@
+package com.healthydiet.system.dto.auth;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+
+@Data
+@AllArgsConstructor
+public class LoginResponse {
+
+    private String token;
+
+    private AuthUserResponse user;
+}
