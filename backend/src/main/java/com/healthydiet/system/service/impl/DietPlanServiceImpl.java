@@ -37,8 +37,8 @@ import java.util.Set;
 public class DietPlanServiceImpl extends ServiceImpl<DietPlanMapper, DietPlan> implements DietPlanService {
 
     private static final BigDecimal ONE_HUNDRED = BigDecimal.valueOf(100);
-    private static final BigDecimal MIN_GRAMS = BigDecimal.valueOf(50);
-    private static final BigDecimal MAX_GRAMS = BigDecimal.valueOf(250);
+    private static final BigDecimal FALLBACK_MIN_GRAMS = BigDecimal.valueOf(50);
+    private static final BigDecimal FALLBACK_MAX_GRAMS = BigDecimal.valueOf(300);
 
     private final DietPlanItemService dietPlanItemService;
     private final UserProfileMapper userProfileMapper;
@@ -109,39 +109,81 @@ public class DietPlanServiceImpl extends ServiceImpl<DietPlanMapper, DietPlan> i
     }
 
     private List<Food> usableFoods(UserProfile profile) {
-        List<String> blockedKeywords = splitKeywords(profile.getAvoidFoods(), profile.getAllergies());
+        FoodAvoidRules avoidRules = buildAvoidRules(profile.getAvoidFoods(), profile.getAllergies());
         List<Food> foods = foodService.list(new LambdaQueryWrapper<Food>()
                 .gt(Food::getCalories, BigDecimal.ZERO)
                 .orderByAsc(Food::getCategory)
                 .orderByAsc(Food::getCalories)
                 .orderByAsc(Food::getId));
         return foods.stream()
-                .filter(food -> !containsBlockedKeyword(food.getName(), blockedKeywords))
+                .filter(food -> !isBlockedFood(food, avoidRules))
                 .filter(food -> !Boolean.TRUE.equals(food.getHighSugar() != null && food.getHighSugar() == 1))
                 .toList();
     }
 
-    private List<String> splitKeywords(String... values) {
+    private FoodAvoidRules buildAvoidRules(String... values) {
         List<String> keywords = new ArrayList<>();
+        Set<String> categories = new HashSet<>();
         for (String value : values) {
             if (!StringUtils.hasText(value)) {
                 continue;
             }
-            String[] parts = value.split("[,，、\\s]+");
+            String[] parts = value.split("[,，、\\s]+|和|及|与");
             for (String part : parts) {
-                if (StringUtils.hasText(part)) {
-                    keywords.add(part.trim());
+                String token = cleanAvoidToken(part);
+                if (!StringUtils.hasText(token)) {
+                    continue;
+                }
+                String category = avoidCategory(token);
+                if (category != null) {
+                    categories.add(category);
+                } else {
+                    keywords.add(token);
                 }
             }
         }
-        return keywords;
+        return new FoodAvoidRules(keywords, categories);
     }
 
-    private boolean containsBlockedKeyword(String foodName, List<String> blockedKeywords) {
-        if (!StringUtils.hasText(foodName)) {
+    private String cleanAvoidToken(String value) {
+        if (!StringUtils.hasText(value)) {
+            return null;
+        }
+        String token = value.trim();
+        for (String prefix : List.of("不要吃", "不能吃", "不喜欢吃", "不爱吃", "不吃", "少吃", "避免", "忌口", "忌", "不要", "不能")) {
+            if (token.startsWith(prefix)) {
+                token = token.substring(prefix.length()).trim();
+                break;
+            }
+        }
+        if (token.endsWith("类")) {
+            token = token.substring(0, token.length() - 1);
+        }
+        return StringUtils.hasText(token) ? token : null;
+    }
+
+    private String avoidCategory(String token) {
+        return switch (token) {
+            case "水果" -> "水果";
+            case "蔬菜" -> "蔬菜";
+            case "主食", "碳水" -> "主食";
+            case "乳制品", "奶制品", "牛奶" -> "乳制品";
+            case "坚果" -> "坚果";
+            case "饮品", "饮料" -> "饮品";
+            case "零食" -> "零食";
+            default -> null;
+        };
+    }
+
+    private boolean isBlockedFood(Food food, FoodAvoidRules avoidRules) {
+        if (avoidRules.categories().contains(food.getCategory())) {
+            return true;
+        }
+        if (!StringUtils.hasText(food.getName())) {
             return false;
         }
-        return blockedKeywords.stream().anyMatch(foodName::contains);
+        return avoidRules.keywords().stream()
+                .anyMatch(keyword -> food.getName().contains(keyword) || keyword.contains(food.getName()));
     }
 
     private void createMealItems(
@@ -157,19 +199,19 @@ public class DietPlanServiceImpl extends ServiceImpl<DietPlanMapper, DietPlan> i
         BigDecimal mealCalories = targetCalories.multiply(ratio);
         List<MealSlot> slots = switch (mealType) {
             case "breakfast" -> List.of(
-                    new MealSlot("主食", BigDecimal.valueOf(0.45)),
-                    new MealSlot("蛋白质", BigDecimal.valueOf(0.35)),
-                    new MealSlot("水果", BigDecimal.valueOf(0.20))
+                    new MealSlot(List.of("主食"), BigDecimal.valueOf(0.45), BigDecimal.valueOf(60), BigDecimal.valueOf(180)),
+                    new MealSlot(List.of("蛋白质", "乳制品"), BigDecimal.valueOf(0.35), BigDecimal.valueOf(50), BigDecimal.valueOf(180)),
+                    new MealSlot(List.of("水果", "乳制品"), BigDecimal.valueOf(0.20), BigDecimal.valueOf(80), BigDecimal.valueOf(220))
             );
             case "lunch" -> List.of(
-                    new MealSlot("主食", BigDecimal.valueOf(0.45)),
-                    new MealSlot("蛋白质", BigDecimal.valueOf(0.35)),
-                    new MealSlot("蔬菜", BigDecimal.valueOf(0.20))
+                    new MealSlot(List.of("主食"), BigDecimal.valueOf(0.45), BigDecimal.valueOf(100), BigDecimal.valueOf(260)),
+                    new MealSlot(List.of("蛋白质"), BigDecimal.valueOf(0.35), BigDecimal.valueOf(80), BigDecimal.valueOf(220)),
+                    new MealSlot(List.of("蔬菜"), BigDecimal.valueOf(0.20), BigDecimal.valueOf(150), BigDecimal.valueOf(350))
             );
             default -> List.of(
-                    new MealSlot("主食", BigDecimal.valueOf(0.35)),
-                    new MealSlot("蛋白质", BigDecimal.valueOf(0.40)),
-                    new MealSlot("蔬菜", BigDecimal.valueOf(0.25))
+                    new MealSlot(List.of("主食"), BigDecimal.valueOf(0.35), BigDecimal.valueOf(80), BigDecimal.valueOf(220)),
+                    new MealSlot(List.of("蛋白质"), BigDecimal.valueOf(0.40), BigDecimal.valueOf(80), BigDecimal.valueOf(220)),
+                    new MealSlot(List.of("蔬菜"), BigDecimal.valueOf(0.25), BigDecimal.valueOf(150), BigDecimal.valueOf(350))
             );
         };
 
@@ -180,31 +222,61 @@ public class DietPlanServiceImpl extends ServiceImpl<DietPlanMapper, DietPlan> i
         };
         for (int i = 0; i < slots.size(); i++) {
             MealSlot slot = slots.get(i);
-            Food food = chooseFood(foods, slot.category(), mealType, usedFoodIds);
+            BigDecimal foodTargetCalories = mealCalories.multiply(slot.ratio());
+            Food food = chooseFood(foods, slot, mealType, foodTargetCalories, usedFoodIds);
             if (food == null) {
                 continue;
             }
             usedFoodIds.add(food.getId());
-            BigDecimal foodTargetCalories = mealCalories.multiply(slot.ratio());
-            result.add(buildItem(mealType, food, foodTargetCalories, profile, assessment, baseOrder + i));
+            result.add(buildItem(mealType, food, foodTargetCalories, slot, profile, assessment, baseOrder + i));
         }
     }
 
-    private Food chooseFood(List<Food> foods, String category, String mealType, Set<Long> usedFoodIds) {
-        return foods.stream()
-                .filter(food -> category.equals(food.getCategory()))
+    private Food chooseFood(List<Food> foods, MealSlot slot, String mealType, BigDecimal targetCalories, Set<Long> usedFoodIds) {
+        List<Food> candidates = foods.stream()
+                .filter(food -> slot.categories().contains(food.getCategory()))
                 .filter(food -> !usedFoodIds.contains(food.getId()))
                 .filter(food -> mealMatch(food, mealType))
-                .min(Comparator.comparing(Food::getHighFat)
-                        .thenComparing(Food::getCalories)
+                .filter(food -> categoryNutritionMatch(food, food.getCategory()))
+                .toList();
+        Food matchedFood = candidates.stream()
+                .filter(food -> gramsInRange(food, targetCalories, slot.minGrams(), slot.maxGrams()))
+                .min(Comparator.comparing((Food food) -> calorieGap(food, targetCalories, slot))
+                        .thenComparing(Food::getHighFat)
                         .thenComparing(Food::getId))
-                .orElseGet(() -> foods.stream()
-                        .filter(food -> category.equals(food.getCategory()))
-                        .filter(food -> !usedFoodIds.contains(food.getId()))
-                        .min(Comparator.comparing(Food::getHighFat)
-                                .thenComparing(Food::getCalories)
-                                .thenComparing(Food::getId))
-                        .orElse(null));
+                .orElse(null);
+        if (matchedFood != null) {
+            return matchedFood;
+        }
+        return candidates.stream()
+                .min(Comparator.comparing((Food food) -> calorieGap(food, targetCalories, slot))
+                        .thenComparing(Food::getHighFat)
+                        .thenComparing(Food::getId))
+                .orElse(null);
+    }
+
+    private boolean categoryNutritionMatch(Food food, String category) {
+        return switch (category) {
+            case "主食" -> food.getCalories().compareTo(BigDecimal.valueOf(70)) >= 0
+                    && food.getCarbs().compareTo(BigDecimal.valueOf(12)) >= 0;
+            case "蛋白质" -> food.getCalories().compareTo(BigDecimal.valueOf(60)) >= 0
+                    && food.getProtein().compareTo(BigDecimal.valueOf(8)) >= 0;
+            case "蔬菜" -> food.getCalories().compareTo(BigDecimal.valueOf(120)) <= 0;
+            case "水果" -> food.getCalories().compareTo(BigDecimal.valueOf(30)) >= 0
+                    && food.getCalories().compareTo(BigDecimal.valueOf(130)) <= 0;
+            default -> true;
+        };
+    }
+
+    private boolean gramsInRange(Food food, BigDecimal targetCalories, BigDecimal minGrams, BigDecimal maxGrams) {
+        BigDecimal grams = gramsForCalories(food, targetCalories);
+        return grams.compareTo(minGrams) >= 0 && grams.compareTo(maxGrams) <= 0;
+    }
+
+    private BigDecimal calorieGap(Food food, BigDecimal targetCalories, MealSlot slot) {
+        BigDecimal grams = clamp(gramsForCalories(food, targetCalories), slot.minGrams(), slot.maxGrams());
+        BigDecimal calories = nutrientByGrams(food.getCalories(), grams, 0);
+        return calories.subtract(targetCalories).abs();
     }
 
     private boolean mealMatch(Food food, String mealType) {
@@ -218,14 +290,13 @@ public class DietPlanServiceImpl extends ServiceImpl<DietPlanMapper, DietPlan> i
             String mealType,
             Food food,
             BigDecimal targetCalories,
+            MealSlot slot,
             UserProfile profile,
             AssessmentResponse assessment,
             Integer sortOrder
     ) {
-        BigDecimal grams = targetCalories
-                .divide(food.getCalories(), 4, RoundingMode.HALF_UP)
-                .multiply(ONE_HUNDRED);
-        grams = clamp(grams, MIN_GRAMS, MAX_GRAMS).setScale(0, RoundingMode.HALF_UP);
+        BigDecimal grams = clamp(gramsForCalories(food, targetCalories), slot.minGrams(), slot.maxGrams())
+                .setScale(0, RoundingMode.HALF_UP);
 
         DietPlanItem item = new DietPlanItem();
         item.setFoodId(food.getId());
@@ -252,6 +323,17 @@ public class DietPlanServiceImpl extends ServiceImpl<DietPlanMapper, DietPlan> i
         return value;
     }
 
+    private BigDecimal gramsForCalories(Food food, BigDecimal targetCalories) {
+        if (food.getCalories() == null || food.getCalories().compareTo(BigDecimal.ZERO) <= 0) {
+            return FALLBACK_MIN_GRAMS;
+        }
+        return targetCalories
+                .divide(food.getCalories(), 4, RoundingMode.HALF_UP)
+                .multiply(ONE_HUNDRED)
+                .max(FALLBACK_MIN_GRAMS)
+                .min(FALLBACK_MAX_GRAMS);
+    }
+
     private BigDecimal nutrientByGrams(BigDecimal perHundredGrams, BigDecimal grams, int scale) {
         return perHundredGrams.multiply(grams)
                 .divide(ONE_HUNDRED, scale + 2, RoundingMode.HALF_UP)
@@ -263,6 +345,7 @@ public class DietPlanServiceImpl extends ServiceImpl<DietPlanMapper, DietPlan> i
         parts.add(switch (food.getCategory()) {
             case "主食" -> "提供稳定碳水，帮助维持饱腹感";
             case "蛋白质" -> "补充优质蛋白，支持肌肉维持和恢复";
+            case "乳制品" -> "补充蛋白质和钙，可作为轻量早餐搭配";
             case "蔬菜" -> "增加膳食纤维和微量营养素";
             case "水果" -> "作为轻量加餐来源，补充天然风味";
             default -> "补充本餐营养结构";
@@ -354,7 +437,10 @@ public class DietPlanServiceImpl extends ServiceImpl<DietPlanMapper, DietPlan> i
         };
     }
 
-    private record MealSlot(String category, BigDecimal ratio) {
+    private record MealSlot(List<String> categories, BigDecimal ratio, BigDecimal minGrams, BigDecimal maxGrams) {
+    }
+
+    private record FoodAvoidRules(List<String> keywords, Set<String> categories) {
     }
 
     @FunctionalInterface
