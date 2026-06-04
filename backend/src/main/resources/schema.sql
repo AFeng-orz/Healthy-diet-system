@@ -141,6 +141,28 @@ CREATE TABLE IF NOT EXISTS t_diet_plan_item (
   KEY idx_plan_item_deleted (deleted)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='饮食计划明细表';
 
+CREATE TABLE IF NOT EXISTS t_diet_record (
+  id BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT '主键',
+  user_id BIGINT NOT NULL COMMENT '用户ID',
+  food_id BIGINT NOT NULL COMMENT '食物ID',
+  record_date DATE NOT NULL COMMENT '记录日期',
+  meal_type VARCHAR(30) NOT NULL COMMENT '餐次：breakfast/lunch/dinner/snack',
+  food_name VARCHAR(100) NOT NULL COMMENT '食物名称快照',
+  food_category VARCHAR(50) DEFAULT NULL COMMENT '食物分类快照',
+  grams DECIMAL(8,2) NOT NULL DEFAULT 0 COMMENT '摄入克数',
+  calories DECIMAL(8,2) NOT NULL DEFAULT 0 COMMENT '本项热量kcal',
+  protein DECIMAL(8,2) NOT NULL DEFAULT 0 COMMENT '本项蛋白质g',
+  fat DECIMAL(8,2) NOT NULL DEFAULT 0 COMMENT '本项脂肪g',
+  carbs DECIMAL(8,2) NOT NULL DEFAULT 0 COMMENT '本项碳水g',
+  remark VARCHAR(255) DEFAULT NULL COMMENT '备注',
+  create_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  update_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  deleted TINYINT NOT NULL DEFAULT 0 COMMENT '逻辑删除：0未删除，1已删除',
+  KEY idx_diet_record_user_date (user_id, record_date),
+  KEY idx_diet_record_food (food_id),
+  KEY idx_diet_record_deleted (deleted)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='每日饮食记录表';
+
 CREATE TEMPORARY TABLE IF NOT EXISTS tmp_food_seed (
   name VARCHAR(100) NOT NULL,
   category VARCHAR(50) NOT NULL,
