@@ -28,6 +28,7 @@ backend/src/main/resources/schema.sql
 | `t_health_answer` | Phase 5 | 健康问卷答题明细表 |
 | `t_diet_plan` | Phase 7 | 饮食计划主表 |
 | `t_diet_plan_item` | Phase 7 | 饮食计划明细表 |
+| `t_diet_record` | Phase 8 | 每日饮食记录表 |
 
 ## 4. 食物营养库表 `t_food`
 
@@ -119,7 +120,35 @@ Excel 导入映射：
 
 明细表保存食物快照，避免食物库后续编辑导致历史计划展示内容被动变化。
 
-## 7. 后续阶段待补充表
+## 7. 每日饮食记录表 `t_diet_record`
+
+| 字段 | 类型 | 说明 |
+|---|---|---|
+| id | BIGINT | 主键 |
+| user_id | BIGINT | 用户ID |
+| food_id | BIGINT | 食物ID |
+| record_date | DATE | 记录日期 |
+| meal_type | VARCHAR(30) | 餐次：breakfast/lunch/dinner/snack |
+| food_name | VARCHAR(100) | 食物名称快照 |
+| food_category | VARCHAR(50) | 食物分类快照 |
+| grams | DECIMAL(8,2) | 摄入克数 |
+| calories | DECIMAL(8,2) | 本项热量 kcal |
+| protein | DECIMAL(8,2) | 本项蛋白质 g |
+| fat | DECIMAL(8,2) | 本项脂肪 g |
+| carbs | DECIMAL(8,2) | 本项碳水 g |
+| remark | VARCHAR(255) | 备注 |
+| create_time | DATETIME | 创建时间 |
+| update_time | DATETIME | 更新时间 |
+| deleted | TINYINT | 逻辑删除 |
+
+索引：
+
+- `idx_diet_record_user_date(user_id, record_date)`：按用户和日期查询每日记录。
+- `idx_diet_record_food(food_id)`：关联食物库。
+- `idx_diet_record_deleted(deleted)`：逻辑删除过滤。
+
+记录表保存食物快照和换算后的营养值，历史记录不随食物库编辑被动变化。
+
+## 8. 后续阶段待补充表
 
 - `t_weight_record`：体重记录。
-- `t_diet_record`：Phase 8 每日饮食记录。

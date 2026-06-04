@@ -123,12 +123,11 @@ onMounted(loadLatestPlan)
                   <span>{{ item.foodCategory }} · {{ formatNumber(item.grams, ' g') }}</span>
                 </div>
                 <div class="food-nutrients">
-                  <span>{{ formatNumber(item.calories, ' kcal') }}</span>
-                  <em>蛋白 {{ formatNumber(item.protein, ' g') }}</em>
-                  <em>脂肪 {{ formatNumber(item.fat, ' g') }}</em>
-                  <em>碳水 {{ formatNumber(item.carbs, ' g') }}</em>
+                  <strong>{{ formatNumber(item.calories, ' kcal') }}</strong>
+                  <span>蛋白 {{ formatNumber(item.protein, ' g') }}</span>
+                  <span>脂肪 {{ formatNumber(item.fat, ' g') }}</span>
+                  <span>碳水 {{ formatNumber(item.carbs, ' g') }}</span>
                 </div>
-                <p>{{ item.reason }}</p>
               </div>
             </div>
           </article>
@@ -240,11 +239,11 @@ onMounted(loadLatestPlan)
 .meal-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 18px;
+  gap: 20px;
 }
 
 .meal-card {
-  padding: 28px;
+  padding: 26px;
 }
 
 .meal-head {
@@ -278,13 +277,13 @@ onMounted(loadLatestPlan)
 .food-list {
   display: flex;
   flex-direction: column;
-  gap: 18px;
-  margin-top: 22px;
+  gap: 14px;
+  margin-top: 20px;
 }
 
 .food-row {
-  padding: 18px;
-  border-radius: 20px;
+  padding: 18px 18px 16px;
+  border-radius: 18px;
   background: #fbfcfb;
   border: 1px solid rgba(229, 229, 234, 0.76);
 }
@@ -298,7 +297,8 @@ onMounted(loadLatestPlan)
 
 .food-main strong {
   color: var(--hd-text);
-  font-size: 17px;
+  font-size: 18px;
+  line-height: 1.35;
 }
 
 .food-main span {
@@ -309,27 +309,35 @@ onMounted(loadLatestPlan)
 
 .food-nutrients {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 8px;
-  margin-top: 14px;
+  margin-top: 16px;
   color: var(--hd-muted);
-  font-size: 13px;
+  font-size: 12px;
 }
 
+.food-nutrients strong,
 .food-nutrients span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 30px;
+  padding: 6px 8px;
+  border-radius: 999px;
+  background: #f3f6f3;
+  white-space: nowrap;
+  font-weight: 600;
+}
+
+.food-nutrients strong {
   color: #0b7f35;
-  font-weight: 700;
+  background: var(--hd-primary-soft);
 }
 
-.food-nutrients em {
-  font-style: normal;
-}
-
-.food-row p {
-  margin: 14px 0 0;
-  color: var(--hd-muted);
-  font-size: 14px;
-  line-height: 1.7;
+@media (max-width: 1180px) {
+  .food-nutrients {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 .empty-plan {

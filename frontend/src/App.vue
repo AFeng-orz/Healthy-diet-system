@@ -3,12 +3,19 @@ import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { getCurrentUser } from './api/auth'
+import logoUrl from './assets/logo/house.png'
 
 const route = useRoute()
 const router = useRouter()
 const isLoginPage = computed(() => route.path === '/login')
+const canAutoHideTopBar = computed(() => route.path !== '/home')
 const showLogoutDialog = ref(false)
 const currentUser = ref(readStoredUser())
+const topBarHidden = ref(false)
+const hideOffset = 90
+const scrollDelta = 8
+let lastScrollY = 0
+let scrollFrame = null
 
 const menus = [
   { path: '/home', label: '首页' },
@@ -73,20 +80,84 @@ function confirmLogout() {
   router.replace('/login')
 }
 
+function getScrollY() {
+  return Math.max(window.scrollY || document.documentElement.scrollTop || 0, 0)
+}
+
+function hasScrollablePage() {
+  return document.documentElement.scrollHeight > window.innerHeight + 8
+}
+
+function updateTopBarVisibility() {
+  if (!canAutoHideTopBar.value || !hasScrollablePage()) {
+    topBarHidden.value = false
+    lastScrollY = getScrollY()
+    return
+  }
+
+  const currentScrollY = getScrollY()
+
+  if (currentScrollY <= 24) {
+    topBarHidden.value = false
+    lastScrollY = currentScrollY
+    return
+  }
+
+  if (currentScrollY > lastScrollY + scrollDelta && currentScrollY > hideOffset) {
+    topBarHidden.value = true
+  } else if (currentScrollY < lastScrollY - scrollDelta) {
+    topBarHidden.value = false
+  }
+
+  lastScrollY = currentScrollY
+}
+
+function handleScroll() {
+  if (scrollFrame !== null) return
+  scrollFrame = window.requestAnimationFrame(() => {
+    scrollFrame = null
+    updateTopBarVisibility()
+  })
+}
+
+function handleWheel(event) {
+  if (!canAutoHideTopBar.value || !hasScrollablePage()) {
+    topBarHidden.value = false
+    return
+  }
+
+  const currentScrollY = getScrollY()
+  if (event.deltaY > scrollDelta && currentScrollY + event.deltaY > hideOffset) {
+    topBarHidden.value = true
+  } else if (event.deltaY < -scrollDelta) {
+    topBarHidden.value = false
+  }
+}
+
 onMounted(() => {
   window.addEventListener('storage', syncUserFromStorage)
   window.addEventListener('healthy-diet-user-updated', syncUserFromStorage)
+  window.addEventListener('scroll', handleScroll, { passive: true })
+  window.addEventListener('wheel', handleWheel, { passive: true })
+  lastScrollY = getScrollY()
   refreshCurrentUser()
 })
 
 onBeforeUnmount(() => {
   window.removeEventListener('storage', syncUserFromStorage)
   window.removeEventListener('healthy-diet-user-updated', syncUserFromStorage)
+  window.removeEventListener('scroll', handleScroll)
+  window.removeEventListener('wheel', handleWheel)
+  if (scrollFrame !== null) {
+    window.cancelAnimationFrame(scrollFrame)
+  }
 })
 
 watch(
   () => route.path,
   () => {
+    topBarHidden.value = false
+    lastScrollY = getScrollY()
     syncUserFromStorage()
     refreshCurrentUser()
   }
@@ -96,9 +167,11 @@ watch(
 <template>
   <router-view v-if="isLoginPage" />
   <div v-else class="app-shell">
-    <header class="top-bar glass-card">
+    <header class="top-bar glass-card" :class="{ 'is-hidden': topBarHidden }">
       <router-link to="/home" class="brand">
-        <span class="brand-icon">H</span>
+        <span class="brand-icon">
+          <img :src="logoUrl" alt="Healthy Diet Logo" />
+        </span>
         <span>
           <strong>Healthy Diet</strong>
           <small>健康生活饮食规划</small>
@@ -159,6 +232,16 @@ watch(
   margin: 0 auto;
   padding: 14px 18px;
   backdrop-filter: blur(20px);
+  transform: translateY(0);
+  opacity: 1;
+  transition: transform 0.28s ease, opacity 0.22s ease, box-shadow 0.22s ease;
+  will-change: transform, opacity;
+}
+
+.top-bar.is-hidden {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(calc(-100% - 28px));
 }
 
 .brand {
@@ -183,6 +266,13 @@ watch(
   height: 42px;
   border-radius: 14px;
   font-size: 17px;
+}
+
+.brand-icon img {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+  display: block;
 }
 
 .brand strong,
