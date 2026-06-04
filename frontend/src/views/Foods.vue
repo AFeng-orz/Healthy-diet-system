@@ -219,9 +219,9 @@ async function removeFood(row) {
     await ElMessageBox.confirm(`删除后，“${row.name}”将不再出现在食物库列表中。`, '确认删除食物', {
       confirmButtonText: '删除',
       cancelButtonText: '取消',
-      customClass: 'food-delete-confirm',
-      confirmButtonClass: 'food-delete-confirm-button',
-      cancelButtonClass: 'food-delete-cancel-button',
+      customClass: 'hd-danger-confirm',
+      confirmButtonClass: 'hd-danger-confirm-button',
+      cancelButtonClass: 'hd-danger-cancel-button',
       closeOnClickModal: false,
       showClose: false
     })
@@ -722,86 +722,6 @@ onBeforeUnmount(() => {
 
 .category-stat-grid {
   grid-template-columns: repeat(3, minmax(0, 1fr));
-}
-
-:global(.food-delete-confirm.el-message-box) {
-  width: min(420px, calc(100vw - 40px));
-  padding: 22px;
-  border: 0;
-  border-radius: 24px;
-  background: rgba(255, 255, 255, 0.96);
-  box-shadow: 0 24px 80px rgba(20, 40, 26, 0.18);
-}
-
-:global(.food-delete-confirm .el-message-box__header) {
-  padding: 0;
-}
-
-:global(.food-delete-confirm .el-message-box__title) {
-  color: var(--hd-text);
-  font-size: 20px;
-  font-weight: 820;
-}
-
-:global(.food-delete-confirm .el-message-box__content) {
-  position: relative;
-  margin-top: 16px;
-  padding: 18px 18px 18px 52px;
-  border-radius: 18px;
-  background: #fff7f7;
-  color: var(--hd-muted);
-  line-height: 1.7;
-}
-
-:global(.food-delete-confirm .el-message-box__content::before) {
-  content: "!";
-  position: absolute;
-  left: 18px;
-  top: 20px;
-  width: 22px;
-  height: 22px;
-  border-radius: 999px;
-  color: #ffffff;
-  background: #ff6b6b;
-  font-size: 14px;
-  font-weight: 800;
-  line-height: 22px;
-  text-align: center;
-}
-
-:global(.food-delete-confirm .el-message-box__container) {
-  align-items: flex-start;
-}
-
-:global(.food-delete-confirm .el-message-box__message) {
-  padding: 0;
-}
-
-:global(.food-delete-confirm .el-message-box__btns) {
-  display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-  padding: 18px 0 0;
-}
-
-:global(.food-delete-confirm .el-button) {
-  min-width: 82px;
-  height: 40px;
-  border-radius: 999px;
-  font-weight: 760;
-}
-
-:global(.food-delete-cancel-button) {
-  border: 0 !important;
-  color: var(--hd-text) !important;
-  background: #f1f4f1 !important;
-}
-
-:global(.food-delete-confirm-button) {
-  border: 0 !important;
-  color: #ffffff !important;
-  background: linear-gradient(135deg, #ff6b6b, #e5484d) !important;
-  box-shadow: 0 12px 26px rgba(229, 72, 77, 0.22);
 }
 
 @media (max-width: 1180px) {

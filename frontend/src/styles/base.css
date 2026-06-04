@@ -93,3 +93,105 @@ a {
   border-radius: 50%;
   background: var(--hd-primary);
 }
+
+.app-main .el-loading-parent--relative > .el-loading-mask {
+  border-radius: var(--hd-radius-lg);
+  background: rgba(247, 248, 246, 0.58);
+  backdrop-filter: blur(8px);
+}
+
+.app-main .glass-card.el-loading-parent--relative > .el-loading-mask {
+  border-radius: inherit;
+}
+
+.app-main .el-loading-spinner .path {
+  stroke: var(--hd-primary);
+}
+
+.hd-danger-confirm.el-message-box {
+  width: min(420px, calc(100vw - 40px));
+  padding: 22px;
+  border: 0;
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 24px 80px rgba(20, 40, 26, 0.18);
+}
+
+.hd-danger-confirm .el-message-box__header {
+  padding: 0;
+}
+
+.hd-danger-confirm .el-message-box__title {
+  color: var(--hd-text);
+  font-size: 20px;
+  font-weight: 820;
+}
+
+.hd-danger-confirm .el-message-box__content {
+  position: relative;
+  margin-top: 16px;
+  padding: 18px 18px 18px 52px;
+  border-radius: 18px;
+  background: #fff7f7;
+  color: var(--hd-muted);
+  line-height: 1.7;
+}
+
+.hd-danger-confirm .el-message-box__content::before {
+  content: "!";
+  position: absolute;
+  left: 18px;
+  top: 20px;
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  color: #ffffff;
+  background: #ff6b6b;
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 22px;
+  text-align: center;
+}
+
+.hd-danger-confirm .el-message-box__container {
+  align-items: flex-start;
+}
+
+.hd-danger-confirm .el-message-box__status {
+  display: none;
+}
+
+.hd-danger-confirm .el-message-box__message {
+  padding: 0;
+}
+
+.hd-danger-confirm .el-message-box__message p {
+  margin: 0;
+}
+
+.hd-danger-confirm .el-message-box__btns {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 18px 0 0;
+}
+
+.hd-danger-confirm .el-button {
+  min-width: 82px;
+  height: 40px;
+  border-radius: 999px;
+  font-weight: 760;
+}
+
+.hd-danger-cancel-button {
+  border: 0 !important;
+  color: var(--hd-text) !important;
+  background: #f1f4f1 !important;
+}
+
+.hd-danger-confirm-button {
+  border: 0 !important;
+  color: #ffffff !important;
+  background: linear-gradient(135deg, #ff6b6b, #e5484d) !important;
+  box-shadow: 0 12px 26px rgba(229, 72, 77, 0.22);
+}

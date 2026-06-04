@@ -170,9 +170,57 @@ cd D:\vscode\healthy-diet-system\frontend
 npm.cmd run build
 ```
 
-## 8. 常见问题
+## 8. Phase 8 饮食记录验证步骤
 
-### 8.1 前端提示找不到 package.json
+1. 启动 MySQL。
+2. 启动后端：`mvn spring-boot:run`。
+3. 启动前端：`npm.cmd run dev`。
+4. 登录测试账号。
+5. 进入“健康档案”，确认已保存推荐热量和营养目标。
+6. 进入“食物库”，确认有可搜索的食物。
+7. 进入“饮食记录”，选择餐次、搜索食物、输入克数并添加。
+8. 页面应展示新增记录，并自动刷新热量、蛋白质、脂肪和碳水汇总。
+9. 点击删除，应能移除误添加记录并刷新汇总。
+10. 切换日期，应能查看指定日期记录。
+
+本阶段验证命令：
+
+```powershell
+cd D:\vscode\healthy-diet-system\backend
+mvn.cmd test
+```
+
+```powershell
+cd D:\vscode\healthy-diet-system\frontend
+npm.cmd run build
+```
+
+## 9. Phase 9 健康报告验证步骤
+
+1. 启动 MySQL。
+2. 启动后端：`mvn spring-boot:run`。
+3. 启动前端：`npm.cmd run dev`。
+4. 登录测试账号。
+5. 确认“健康档案”已保存推荐热量和三大营养素目标。
+6. 在“饮食记录”页面添加至少一条今日记录。
+7. 进入“健康报告”，页面应展示今日完成率、最近 7 天记录天数、日均热量和 7 天热量趋势。
+8. 如果最近 7 天没有记录，页面应展示空趋势和引导性总结。
+
+本阶段验证命令：
+
+```powershell
+cd D:\vscode\healthy-diet-system\backend
+mvn.cmd test
+```
+
+```powershell
+cd D:\vscode\healthy-diet-system\frontend
+npm.cmd run build
+```
+
+## 10. 常见问题
+
+### 10.1 前端提示找不到 package.json
 
 原因：在项目根目录执行了 npm 命令。
 
@@ -183,7 +231,7 @@ cd D:\vscode\healthy-diet-system\frontend
 npm.cmd run dev
 ```
 
-### 8.2 后端启动提示数据库连接失败
+### 10.2 后端启动提示数据库连接失败
 
 请检查：
 
@@ -192,7 +240,7 @@ npm.cmd run dev
 - `application.yml` 中的用户名和密码是否正确。
 - 是否执行了 `schema.sql`。
 
-### 8.3 登录接口返回“请先登录”
+### 10.3 登录接口返回“请先登录”
 
 正常情况下，`/api/auth/login` 和 `/api/auth/register` 不会被拦截。
 
@@ -203,14 +251,26 @@ npm.cmd run dev
 /api/auth/register
 ```
 
-### 8.4 生成饮食计划提示请先完善健康档案
+### 10.4 生成饮食计划提示请先完善健康档案
 
 原因：当前账号还没有保存健康档案，系统无法计算推荐热量。
 
 解决方式：进入“健康档案”页面，填写并保存基础信息后再生成计划。
 
-### 8.5 生成饮食计划提示食物库暂无可用食物
+### 10.5 生成饮食计划提示食物库暂无可用食物
 
 原因：食物库为空，或者所有食物都被忌口、过敏关键词排除了。
 
 解决方式：先在“食物库”新增食物，或导入 Excel 食物数据，再检查健康档案中的忌口和过敏内容是否过宽。
+
+### 10.6 饮食记录页面没有目标值
+
+原因：当前账号还没有保存健康档案，系统无法计算推荐热量和三大营养素目标。
+
+解决方式：先进入“健康档案”页面保存基础信息，再回到“饮食记录”查看目标对比。
+
+### 10.7 健康报告没有趋势数据
+
+原因：最近 7 天内没有饮食记录。
+
+解决方式：进入“饮食记录”页面添加实际摄入记录后，再回到“健康报告”查看趋势。

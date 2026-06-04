@@ -191,11 +191,109 @@ Excel 要求：
 - 自动避开用户忌口和过敏关键词。
 - 当前版本生成早餐、午餐、晚餐三餐，不包含加餐。
 
+### 饮食记录
+
+| 方法 | 路径 | 说明 | 是否登录 |
+|---|---|---|---|
+| POST | `/api/diet-records` | 新增饮食记录 | 是 |
+| GET | `/api/diet-records/daily` | 查询某日饮食记录和汇总 | 是 |
+| DELETE | `/api/diet-records/{id}` | 删除饮食记录 | 是 |
+
+#### 新增饮食记录请求示例
+
+```json
+{
+  "foodId": 8,
+  "recordDate": "2026-06-04",
+  "mealType": "breakfast",
+  "grams": 120,
+  "remark": "少油估算"
+}
+```
+
+餐次取值：
+
+| 值 | 说明 |
+|---|---|
+| breakfast | 早餐 |
+| lunch | 午餐 |
+| dinner | 晚餐 |
+| snack | 加餐 |
+
+#### 每日记录查询
+
+请求：
+
+```text
+GET /api/diet-records/daily?date=2026-06-04
+```
+
+如果不传 `date`，默认查询当天。
+
+响应示例：
+
+```json
+{
+  "recordDate": "2026-06-04",
+  "totalCalories": 620,
+  "totalProtein": 36.5,
+  "totalFat": 18.2,
+  "totalCarbs": 78.4,
+  "targetCalories": 1817,
+  "targetProtein": 104,
+  "targetFat": 50.5,
+  "targetCarbs": 236.7,
+  "caloriesRate": 34,
+  "proteinRate": 35,
+  "fatRate": 36,
+  "carbsRate": 33,
+  "records": []
+}
+```
+
+记录规则：保存食物名称、分类和营养数据快照，避免食物库后续修改影响历史记录展示。
+
+### 健康报告
+
+| 方法 | 路径 | 说明 | 是否登录 |
+|---|---|---|---|
+| GET | `/api/reports/weekly` | 查询最近 7 天健康报告 | 是 |
+
+响应示例：
+
+```json
+{
+  "startDate": "2026-05-29",
+  "endDate": "2026-06-04",
+  "targetCalories": 1817,
+  "todayCalories": 620,
+  "todayCaloriesRate": 34,
+  "averageCalories": 886,
+  "recordedDays": 4,
+  "summary": "今日热量摄入偏低，注意不要长期低于目标过多，优先保证蛋白质和基础能量。",
+  "trends": [
+    {
+      "date": "2026-06-04",
+      "calories": 620,
+      "protein": 36.5,
+      "fat": 18.2,
+      "carbs": 78.4,
+      "caloriesRate": 34
+    }
+  ]
+}
+```
+
+报告规则：
+
+- 最近 7 天范围包含当天。
+- 若未保存健康档案，目标值和完成率返回空，页面提示先完善档案。
+- 热量趋势直接聚合 `t_diet_record` 中每日记录。
+
 ## 4. 后续接口规划
 
-### 饮食记录
+### 健康报告扩展
 
 | 方法 | 路径 | 说明 | 阶段 |
 |---|---|---|---|
-| POST | `/api/diet-records` | 新增饮食记录 | Phase 8 |
-| GET | `/api/diet-records/daily` | 查询每日记录 | Phase 8 |
+| GET | `/api/reports/monthly` | 查询月度健康报告 | 后续扩展 |
