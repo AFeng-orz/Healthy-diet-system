@@ -3,7 +3,6 @@ import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { getCurrentUser } from './api/auth'
-import logoUrl from './assets/logo/house.png'
 
 const route = useRoute()
 const router = useRouter()
@@ -170,7 +169,7 @@ watch(
     <header class="top-bar glass-card" :class="{ 'is-hidden': topBarHidden }">
       <router-link to="/home" class="brand">
         <span class="brand-icon">
-          <img :src="logoUrl" alt="Healthy Diet Logo" />
+          <img src="/logo/logo.png" alt="Healthy Diet Logo" />
         </span>
         <span>
           <strong>Healthy Diet</strong>
@@ -197,7 +196,9 @@ watch(
         <div v-if="showLogoutDialog" class="logout-overlay" @click.self="closeLogoutDialog">
           <section class="logout-dialog" role="dialog" aria-modal="true" aria-labelledby="logout-title">
             <button class="dialog-close" type="button" aria-label="关闭" @click="closeLogoutDialog">×</button>
-            <div class="dialog-mark">H</div>
+            <div class="dialog-mark">
+              <img src="/logo/logo.png" alt="Healthy Diet Logo" />
+            </div>
             <h2 id="logout-title">要暂时离开吗？</h2>
             <p>
               退出后会回到登录页。你的账号信息和后续健康档案数据会继续保留，
@@ -269,8 +270,13 @@ watch(
 }
 
 .brand-icon img {
-  width: 24px;
-  height: 24px;
+  width: 40px;
+  height: 40px;
+}
+
+.dialog-mark img {
+  width: 44px;
+  height: 44px;
   object-fit: contain;
   display: block;
 }
