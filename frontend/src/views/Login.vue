@@ -69,17 +69,12 @@ async function submit() {
 <template>
   <main class="login-page">
     <section class="intro-card glass-card">
-      <span class="status-pill"><span class="status-dot"></span>Phase 3 账号体系</span>
+      <span class="status-pill"><span class="status-dot"></span>健康饮食规划</span>
       <h1>用一个轻量账号，保存你的健康饮食规划。</h1>
       <p>
-        当前阶段已接入真实注册、登录和 Token 鉴权。健康建议仅作为生活方式参考，
+        创建账号后，你可以保存健康档案、饮食计划和每日记录。系统提供的内容仅作为生活方式参考，
         不替代医生诊断或治疗建议。
       </p>
-      <div class="intro-list">
-        <span>密码 BCrypt 加密</span>
-        <span>JWT 登录状态</span>
-        <span>前端路由保护</span>
-      </div>
     </section>
 
     <section class="login-card glass-card">
@@ -102,10 +97,6 @@ async function submit() {
           {{ submitText }}
         </el-button>
       </el-form>
-
-      <p class="form-tip">
-        初学测试建议：先注册一个账号，再用同样用户名和密码登录。
-      </p>
     </section>
   </main>
 </template>
@@ -142,21 +133,6 @@ async function submit() {
   line-height: 1.9;
 }
 
-.intro-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin-top: 28px;
-}
-
-.intro-list span {
-  padding: 10px 14px;
-  border-radius: 999px;
-  color: #147a32;
-  background: var(--hd-primary-soft);
-  font-size: 14px;
-}
-
 .login-card {
   align-self: stretch;
 }
@@ -191,13 +167,6 @@ async function submit() {
 .submit-button {
   width: 100%;
   margin-top: 6px;
-}
-
-.form-tip {
-  margin: 18px 0 0;
-  color: var(--hd-muted);
-  font-size: 13px;
-  line-height: 1.7;
 }
 
 @media (max-width: 900px) {
