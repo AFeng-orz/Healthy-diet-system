@@ -88,13 +88,13 @@ CREATE DATABASE IF NOT EXISTS healthy_diet_system
 backend/src/main/resources/schema.sql
 ```
 
-默认连接配置：
+复制示例配置并改成本地数据库账号：
 
-```text
-backend/src/main/resources/application.yml
+```powershell
+copy backend\src\main\resources\application-example.yml backend\src\main\resources\application.yml
 ```
 
-如果本地 MySQL 账号或密码不同，请修改 `username` 和 `password`。
+然后修改 `backend/src/main/resources/application.yml` 中的 `username`、`password` 和 `app.jwt.secret`。真实的 `application.yml` 只保留在本地，不上传 Git。
 
 ### 2. 后端
 

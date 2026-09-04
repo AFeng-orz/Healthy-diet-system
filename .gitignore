@@ -13,6 +13,17 @@ frontend/dist/
 # Logs
 *.log
 
+# Local config
+.env
+.env.*
+frontend/.env
+frontend/.env.*
+backend/src/main/resources/application.yml
+
+# Local import/data source files
+*.xls
+*.xlsx
+
 # OS
 .DS_Store
 Thumbs.db

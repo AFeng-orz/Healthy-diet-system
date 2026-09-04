@@ -30,19 +30,13 @@ backend/src/main/resources/schema.sql
 
 如果你已经启动过旧版本项目，但食物库页面没有显示初始化食物，或者因为旧表没有唯一索引而出现同名重复数据，重启后端会自动修正。如果仍异常，可以手动打开 `schema.sql`，执行 `tmp_food_seed` 到 `DROP TEMPORARY TABLE tmp_food_seed` 这一段。
 
-默认数据库连接：
+首次启动前，先复制示例配置：
 
-```yaml
-url: jdbc:mysql://localhost:3306/healthy_diet_system
-username: root
-password: root
+```powershell
+copy backend\src\main\resources\application-example.yml backend\src\main\resources\application.yml
 ```
 
-如果你的 MySQL 密码不同，请修改：
-
-```text
-backend/src/main/resources/application.yml
-```
+然后修改 `backend/src/main/resources/application.yml` 中的 MySQL 用户名、密码和 `app.jwt.secret`。真实配置文件只放在本地，不上传 Git。
 
 ## 3. 后端启动
 
